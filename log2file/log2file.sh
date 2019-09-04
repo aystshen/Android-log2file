@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-SDCARD_PATH=/mnt/internal_sd
+SDCARD_PATH=/sdcard
 
 FILE_MAX_SIZE=$((1024*1024*20))
 LOGCAT_PID=-1
@@ -21,16 +21,22 @@ ANDROID_INDEX_FILE=${ANDROID_LOG_FILE_PATH}/index.txt
 if [ -f ${ANDROID_INDEX_FILE} ]
 then
 	ANDROID_INDEX=`cat ${ANDROID_INDEX_FILE}`
+	ANDROID_INDEX=`busybox expr ${ANDROID_INDEX} + 1`
+	echo "${ANDROID_INDEX}" > ${ANDROID_INDEX_FILE}
 else
 	ANDROID_INDEX=0
+	echo "0" > ${ANDROID_INDEX_FILE}
 fi
 
 KERNEL_INDEX_FILE=${KERNEL_LOG_FILE_PATH}/index.txt
 if [ -f ${KERNEL_INDEX_FILE} ]
 then
 	KERNEL_INDEX=`cat ${KERNEL_INDEX_FILE}`
+	KERNEL_INDEX=`busybox expr ${KERNEL_INDEX} + 1`
+	echo "${KERNEL_INDEX}" > ${KERNEL_INDEX_FILE}
 else
 	KERNEL_INDEX=0
+	echo "0" > ${KERNEL_INDEX_FILE}
 fi
 
 if [ ! -d ${ANDROID_LOG_FILE_PATH} ]
@@ -48,7 +54,7 @@ logcat2file() {
 		kill -9 ${LOGCAT_PID}
 	fi
 
-	if [ ${ANDROID_LOG_FILE} != ${ANDROID_LOG_FILE_PATH}/android.log ]; then
+	if [ ${ANDROID_LOG_FILE} != ${ANDROID_LOG_FILE_PATH}/android_${ANDROID_INDEX}.log ]; then
 		logcat -c
 	fi
 	
@@ -65,7 +71,10 @@ kmsg2file() {
 	fi
 	
 	KERNEL_LOG_FILE=${KERNEL_LOG_FILE_PATH}/kernel_${KERNEL_INDEX}.log
-	cat /proc/kmsg > ${KERNEL_LOG_FILE} &
+	echo "=========== dmesg ===========\n" > ${KERNEL_LOG_FILE}
+	dmesg >> ${KERNEL_LOG_FILE}
+	echo "\n\n\n====== cat /proc/kmsg =======\n" >> ${KERNEL_LOG_FILE}
+	cat /proc/kmsg >> ${KERNEL_LOG_FILE} &
 	KMSG_PID=$!
 	
 	echo "log2file: kmsg2file pid=${KMSG_PID}, file=${KERNEL_LOG_FILE}"
@@ -74,8 +83,8 @@ kmsg2file() {
 kmsg2file
 logcat2file
 while true ; do
-	afilesize=`ls -l ${ANDROID_LOG_FILE} | busybox awk '{ print $4 }'`
-	kfilesize=`ls -l ${KERNEL_LOG_FILE} | busybox awk '{ print $4 }'`
+	afilesize=`ls -l ${ANDROID_LOG_FILE} | busybox awk '{ print $5 }'`
+	kfilesize=`ls -l ${KERNEL_LOG_FILE} | busybox awk '{ print $5 }'`
 	echo "log2file: ${ANDROID_LOG_FILE} size=${afilesize}, FILE_MAX_SIZE=${FILE_MAX_SIZE}"
 	echo "log2file: ${KERNEL_LOG_FILE} size=${kfilesize}, FILE_MAX_SIZE=${FILE_MAX_SIZE}"
 
