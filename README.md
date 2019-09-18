@@ -55,3 +55,44 @@ type log2file, domain, coredomain, mlstrustedsubject;
 type log2file_exec, exec_type, vendor_file_type, file_type;
 init_daemon_domain(log2file)
 ```
+
+## Get the log
+```
+$ adb pull sdcard/log
+```
+
+```
+shenhb@dqrd01:~/code/log$ tree
+.
+├── android
+│?? ├── android_0.log
+│?? ├── android_1.log
+│?? └── index.txt
+└── kernel
+    ├── index.txt
+    ├── kernel_0.log
+    └── kernel_1.log
+```
+- Index.txt records the most recent log count.
+- Create a new log file each time you boot or the current file exceeds 20M.
+- Up to 10 log files, will be recycled.
+
+## Developer
+* ayst.shen@foxmail.com
+
+## License
+```
+Copyright 2019 Bob Shen
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may 
+not use this file except in compliance with the License. You may obtain 
+a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software 
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
+License for the specific language governing permissions and limitations 
+under the License.
+```
